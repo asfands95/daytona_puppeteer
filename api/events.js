@@ -1,54 +1,44 @@
-import puppeteer from "puppeteer";
+import chromium from "playwright-aws-lambda";
 
 export default async function handler(req, res) {
-  const url = "https://members.daytonachamber.com/events?ce=true";
-
-  // scrape current month + next 3 months
-  const MONTHS_TO_SCRAPE = 4;
+  let browser = null;
 
   try {
-    const browser = await puppeteer.launch({
+    // Launch Playwright Chromium
+    browser = await chromium.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
     });
 
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
-    let allEvents = [];
+    // Load the events page
+    await page.goto("https://members.daytonachamber.com/events?ce=true", {
+      waitUntil: "networkidle",
+    });
 
-    for (let i = 0; i < MONTHS_TO_SCRAPE; i++) {
+    // Wait for event cards to load
+    await page.waitForSelector(".mn-event-card", { timeout: 15000 });
 
-      await page.waitForSelector(".fc-event", { timeout: 15000 });
+    // Scrape events
+    const events = await page.evaluate(() => {
+      const cards = document.querySelectorAll(".mn-event-card");
+      return Array.from(cards).map(card => ({
+        title: card.querySelector(".mn-event-card__title")?.innerText.trim() || "",
+        date: card.querySelector(".mn-event-card__date")?.innerText.trim() || "",
+        time: card.querySelector(".mn-event-card__time")?.innerText.trim() || "",
+        location: card.querySelector(".mn-event-card__location")?.innerText.trim() || "",
+        link: card.querySelector("a")?.href || ""
+      }));
+    });
 
-      const events = await page.evaluate(() => {
-        const elements = Array.from(document.querySelectorAll(".fc-event"));
-        
-        return elements.map((el) => ({
-          title: el.querySelector(".fc-title")?.innerText.trim() || "",
-          time: el.querySelector(".fc-time")?.innerText.trim() || "",
-          date: el.getAttribute("data-date") || "",
-          description: el.getAttribute("title") || el.innerText.trim(),
-          url: el.querySelector("a")?.href || null
-        }));
-      });
-
-      allEvents.push(...events);
-
-      const nextBtn = await page.$(".fc-next-button");
-      if (!nextBtn) break;
-
-      await nextBtn.click();
-      await page.waitForTimeout(3000);
-    }
-
-    await browser.close();
-
-    res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=86400");
-    return res.status(200).json({ events: allEvents });
+    res.status(200).json({ events });
 
   } catch (err) {
-    console.error("Scraper error:", err);
-    return res.status(500).json({ error: err.toString() });
+    console.error("SCRAPER ERROR:", err);
+    res.status(500).json({ error: err.toString() });
+  } finally {
+    if (browser) await browser.close();
   }
 }
