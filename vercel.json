@@ -1,9 +1,7 @@
 {
-  "version": 2,
   "functions": {
-    "api/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 30
+    "api/events.js": {
+      "runtime": "nodejs18.x"
     }
   }
 }
