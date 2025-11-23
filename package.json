@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "playwright-core": "1.45.0",
-    "playwright-aws-lambda": "0.12.0"
+    "playwright-core": "1.45.0"
   }
 }
