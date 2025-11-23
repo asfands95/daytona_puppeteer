@@ -1,9 +1,9 @@
 {
-  "name": "daytona-calendar-puppeteer",
+  "name": "daytona-calendar-scraper",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "module",
   "dependencies": {
-    "puppeteer": "^22.0.0"
+    "playwright-core": "1.45.0",
+    "playwright-aws-lambda": "0.12.0"
   }
 }
