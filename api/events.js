@@ -1,14 +1,13 @@
-import { chromium } from "playwright-core";
+import { chromium } from "@playwright/browser-chromium";
 
 export default async function handler(req, res) {
   try {
     const browser = await chromium.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: true
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
-
     await page.goto("https://members.daytonachamber.com/events?ce=true", {
       waitUntil: "networkidle"
     });
@@ -26,7 +25,6 @@ export default async function handler(req, res) {
     });
 
     await browser.close();
-
     res.status(200).json({ events });
 
   } catch (error) {
