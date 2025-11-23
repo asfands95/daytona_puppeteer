@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
     // Use the printable calendar version (very stable and static HTML)
     const targetUrl =
-      "https://members.daytonachamber.com/events/Search?from=01%2F01%2F2020&to=12%2F31%2F2030&cat=0&org=0&view=1";
+      "https://members.daytonachamber.com/events?ce=true";
 
     // Enable JS just in case, but print view normally does not need it
     const scrapingBeeUrl =
