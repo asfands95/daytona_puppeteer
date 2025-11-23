@@ -1,32 +1,31 @@
-import { chromium } from "@playwright/browser-chromium";
-
 export default async function handler(req, res) {
   try {
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    const apiKey = process.env.SCRAPINGBEE_KEY;
 
-    const page = await browser.newPage();
-    await page.goto("https://members.daytonachamber.com/events?ce=true", {
-      waitUntil: "networkidle"
-    });
+    // Fetch rendered HTML from ScrapingBee
+    const response = await fetch(
+      `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}&url=` +
+        encodeURIComponent("https://members.daytonachamber.com/events?ce=true") +
+        "&render_js=true"
+    );
 
-    await page.waitForTimeout(3000);
+    const html = await response.text();
 
-    const events = await page.evaluate(() => {
-      const items = [...document.querySelectorAll('.tm-event-list .tm-event-item')];
-      return items.map(item => {
-        const title = item.querySelector('.tm-event-name')?.innerText || "";
-        const date = item.querySelector('.tm-event-date')?.innerText || "";
-        const link = item.querySelector('a')?.href || "";
-        return { title, date, link };
-      });
-    });
+    // Parse events using simple string extraction
+    const events = [];
+    const regex = /class="tm-event-item"([\s\S]*?)<\/div>\s*<\/div>/g;
+    let match;
 
-    await browser.close();
+    while ((match = regex.exec(html)) !== null) {
+      const block = match[1];
+      const title = /class="tm-event-name">([^<]+)/.exec(block)?.[1] ?? "";
+      const date = /class="tm-event-date">([^<]+)/.exec(block)?.[1] ?? "";
+      const link = /href="([^"]+)"/.exec(block)?.[1] ?? "";
+
+      events.push({ title, date, link });
+    }
+
     res.status(200).json({ events });
-
   } catch (error) {
     res.status(500).json({ error: String(error) });
   }
