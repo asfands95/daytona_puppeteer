@@ -1,8 +1,5 @@
 {
-  "name": "daytona-calendar-scraper",
+  "name": "daytona-calendar-api",
   "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "@playwright/browser-chromium": "1.45.0"
-  }
+  "type": "module"
 }
