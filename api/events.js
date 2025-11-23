@@ -1,35 +1,32 @@
-import * as cheerio from "cheerio";
-
 export default async function handler(req, res) {
   try {
     const apiKey = process.env.SCRAPINGBEE_KEY;
 
-    // Use the printable calendar version (very stable and static HTML)
-    const targetUrl =
-      "https://members.daytonachamber.com/events?ce=true";
+    // Fetch rendered HTML from ScrapingBee
+    const response = await fetch(
+      `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}&url=` +
+        encodeURIComponent("https://members.daytonachamber.com/events?ce=true") +
+        "&render_js=1"
+    );
 
-    // Enable JS just in case, but print view normally does not need it
-    const scrapingBeeUrl =
-      `https://app.scrapingbee.com/api/v1/?api_key=${apiKey}` +
-      `&url=${encodeURIComponent(targetUrl)}` +
-      `&render_js=1`;
-
-    const response = await fetch(scrapingBeeUrl);
     const html = await response.text();
 
-    // Load full HTML into Cheerio
-    const $ = cheerio.load(html);
-
+    // Parse events using simple string extraction
     const events = [];
+    const regex = /class="tm-event-item"([\s\S]*?)<\/div>\s*<\/div>/g;
+    let match;
 
-    // Daytona Chamber print calendar uses this selector:
-    $(".em-event-card").each((i, el) => {
-      const title = $(el).find(".em-event-title").text().trim();
-      const date = $(el).find(".em-event-date").text().trim();
-      let link = $(el).find("a").attr("href") || "";
+    while ((match = regex.exec(html)) !== null) {
+      const block = match[1];
+      const title = /class="tm-event-name">([^<]+)/.exec(block)?.[1] ?? "";
+      const date = /class="tm-event-date">([^<]+)/.exec(block)?.[1] ?? "";
+      const link = /href="([^"]+)"/.exec(block)?.[1] ?? "";
 
-      if (link && !link.startsWith("http")) {
-        link = "https://members.daytonachamber.com" + link;
-      }
+      events.push({ title, date, link });
+    }
 
-      events.push({ title,
+    res.status(200).json({ events });
+  } catch (error) {
+    res.status(500).json({ error: String(error) });
+  }
+}
