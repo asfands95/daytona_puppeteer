@@ -1,5 +1,10 @@
 {
-  "name": "daytona-calendar-api",
+  "name": "daytona-calendar-scraper",
   "version": "1.0.0",
-  "type": "module"
+  "description": "Scrapes Daytona Chamber events using ScraperBee on Vercel",
+  "main": "api/events.js",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  }
 }
