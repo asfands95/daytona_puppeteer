@@ -15,8 +15,6 @@ export default async function handler(req, res) {
         render_js: 'true',
         block_resources: 'true', 
         block_ads: 'true',
-        premium_proxies: 'true',
-        country_code: 'us'
         wait_for: '.mn-listing', 
         timeout: 25000 
       },
