@@ -13,6 +13,7 @@ export default async function handler(req, res) {
         api_key: SCRAPERBEE_API_KEY,
         url: 'https://members.daytonachamber.com/events?ce=true',
         render_js: 'true',
+        premium_proxy: 'true'
         block_resources: 'false', 
         block_ads: 'false',
         wait_for: '.mn-listing', 
