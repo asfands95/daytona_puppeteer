@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await axios.get('https://app.scraperbee.com/api/v1', {
+    const response = await axios.get('https://app.scrapingbee.com/api/v1', {
       params: {
         api_key: SCRAPERBEE_API_KEY,
         url: 'https://members.daytonachamber.com/events?ce=true',
